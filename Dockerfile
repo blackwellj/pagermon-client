@@ -1,8 +1,8 @@
 FROM debian:bullseye-20230109-slim
 
-MAINTAINER codyc1515
-LABEL Description="Pagermon RTL-SDR support"
-LABEL Vendor="codyc1515"
+MAINTAINER James Blackwell
+LABEL Description="Pagermon RTL-SDR client"
+LABEL Vendor="blackwellj"
 LABEL Version="1.0.0"
 
 RUN apt-get update \
@@ -44,14 +44,14 @@ RUN git clone --progress https://github.com/pagermon/pagermon.git /pagermon
 WORKDIR /pagermon/client
 RUN npm install
 
-#COPY ./client_config.json /pagermon/client/config/default.json
+COPY ./client_config.json /pagermon/client/config/default.json
 
 COPY ./run.sh /
 RUN chmod 777 /run.sh
 
-COPY ./healthcheck.js /pagermon/client/healthcheck.js
-RUN chmod 777 /pagermon/client/healthcheck.js
+#COPY ./healthcheck.js /pagermon/client/healthcheck.js
+#RUN chmod 777 /pagermon/client/healthcheck.js
 
 CMD ["/run.sh"]
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD node healthcheck.js || exit 1
+#HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD node healthcheck.js || exit 1
