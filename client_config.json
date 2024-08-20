@@ -1,0 +1,21 @@
+{
+
+"apikey": "KEY HERE",
+
+"hostname": "SERVER HERE,
+
+"identifier": "NAME HERE",
+
+"sendFunctionCode": false,
+
+"useTimestamp": true,
+
+"EAS": {
+
+"excludeEvents": [],
+
+"includeFIPS": [],
+
+"addressAddType": true
+
+}
