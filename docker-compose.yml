@@ -1,21 +1,8 @@
 version: '3.3'
 services:
-    pagermon:
-        container_name: pagermon
-        image: 'pagermon/pagermon:latest-armhf' # For PC: remove :latest-armhf
-        restart: unless-stopped
-        environment:
-            - TZ=Pacific/Auckland
-        volumes:
-            - '/var/lib/pagermon:/config'
-        ports:
-            - '3000:3000'
-        depends_on:
-            - pagermon-client
-
     pagermon-client:
         build:
-            context: https://github.com/blackwellj/pagermon-client,git#main
+            context: https://github.com/blackwellj/pagermon-client.git
             dockerfile: Dockerfile
         container_name: pagermon-client
         image: pagermon-client:latest
@@ -23,7 +10,7 @@ services:
         environment:
             - TZ=Europe/London
         volumes:
-            - '/home/pi/pagermon/client:/pagermon/client/config'
+            - '${HOME}/pagermon/client:/pagermon/client/config'
         devices:
             - /dev/bus/usb
         network_mode: host
