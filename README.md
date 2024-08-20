@@ -23,15 +23,15 @@ services:
 
     pagermon-client:
         build:
-            context: https://github.com/codyc1515/pagermon-rtlsdr.git#main
+            context: https://github.com/blackwellj/pagermon-client,git#main
             dockerfile: Dockerfile
         container_name: pagermon-client
         image: pagermon-client:latest
         restart: unless-stopped
         environment:
-            - TZ=Pacific/Auckland
+            - TZ=Europe/London
         volumes:
-            - '/var/lib/pagermon/client:/pagermon/client/config'
+            - '/home/pi/pagermon/client:/pagermon/client/config'
         devices:
             - /dev/bus/usb
         network_mode: host
