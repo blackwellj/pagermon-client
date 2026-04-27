@@ -3,7 +3,7 @@ FROM --platform=$TARGETPLATFORM debian:bullseye-20230109-slim
 
 LABEL Description="Pagermon RTL-SDR client"
 LABEL Vendor="blackwellj"
-LABEL Version="1.0.0"
+LABEL Version="1.01"
 
 # Install dependencies
 RUN apt-get update \
