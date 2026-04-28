@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-# Set defaults if environment variables are not provided
+set -e
+
 API_KEY=${API_KEY:-NOKEYSUPPLIED}
 PAGER_LOCATION=${PAGER_LOCATION:-UNKNOWN}
 FREQUENCY=${FREQUENCY:-153.0750M}
 DONGLE_SERIAL=${DONGLE_SERIAL:-00000001}
 HOSTNAME=${HOSTNAME:-localhost}
 
-# Path to the client configuration file
 CONFIG_FILE="/pagermon/client/config/default.json"
+READER_SCRIPT="/pagermon/client/reader.sh"
 
-# Update the client configuration file with the environment variables
-cat <<EOF > $CONFIG_FILE
+cat <<EOF > "$CONFIG_FILE"
 {
     "apikey": "${API_KEY}",
     "hostname": "${HOSTNAME}",
@@ -26,23 +26,38 @@ cat <<EOF > $CONFIG_FILE
 }
 EOF
 
-# Create reader.sh script to handle rtl_fm and multimon-ng processing
-READER_SCRIPT="/pagermon/client/reader.sh"
-cat <<EOF > $READER_SCRIPT
+cat <<'EOF' > "$READER_SCRIPT"
 #!/usr/bin/env bash
 
-# Output the online message to reader.js
-echo "POCSAG512: Address: "1025091"  Function: 0  Alpha: "$PAGER_LOCATION Online"" | node reader.js
+DONGLE_SERIAL="${DONGLE_SERIAL:-00000001}"
+FREQUENCY="${FREQUENCY:-153.0750M}"
+PAGER_LOCATION="${PAGER_LOCATION:-UNKNOWN}"
 
-# Start rtl_fm and multimon-ng to process the pager data
-rtl_fm -d "$DONGLE_SERIAL" -E dc -F 0 -A fast -f "$FREQUENCY" -s 22050 - |
-multimon-ng -q -b 1 -c -a POCSAG512 -f alpha -t raw /dev/stdin |echo "POCSAG512: Address: "1025091"  Function: 0  Alpha: "$PAGER_LOCATION Online"" | node reader.js
+cd /pagermon/client || exit 1
 
-node /pagermon/client/reader.js
+echo "Waiting for RTL-SDR dongle serial ${DONGLE_SERIAL}..."
+
+while true; do
+    if rtl_test -d "$DONGLE_SERIAL" -t >/tmp/rtl_test.log 2>&1; then
+        echo "RTL-SDR dongle found: ${DONGLE_SERIAL}"
+        break
+    fi
+
+    echo "Dongle not found. Retrying in 10 seconds..."
+    sleep 10
+done
+
+echo "Sending online message..."
+
+printf 'POCSAG512: Address: 1025091  Function: 0  Alpha: %s Online\n' "$PAGER_LOCATION" | node reader.js
+
+echo "Starting pager decoder on ${FREQUENCY}..."
+
+rtl_fm -d "$DONGLE_SERIAL" -E dc -F 0 -A fast -f "$FREQUENCY" -s 22050 - 2>/tmp/rtl_fm.log | \
+multimon-ng -q -b 1 -c -a POCSAG512 -f alpha -t raw /dev/stdin | \
+node reader.js
 EOF
 
-# Make the reader.sh script executable
-chmod +x $READER_SCRIPT
+chmod +x "$READER_SCRIPT"
 
-# Execute the reader.sh script
-$READER_SCRIPT
+exec "$READER_SCRIPT"
